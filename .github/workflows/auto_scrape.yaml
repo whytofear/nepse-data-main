@@ -27,11 +27,29 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          # Install Chrome
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+          
+          # Install xvfb for virtual display
+          sudo apt-get install -y xvfb
+          
+          # Install Python dependencies
           pip install -r requirements.txt
 
       - name: Execute Scraping Script
         run: |
+          # Start virtual display
+          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          export DISPLAY=:99
+          sleep 3
+          
+          # Run the scraper
           python scrape_floorsheet.py
+        env:
+          CHROME_BIN: /usr/bin/google-chrome-stable
 
       - name: Commit and Push Files
         run: |

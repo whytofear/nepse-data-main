@@ -17,13 +17,51 @@ def setup_driver():
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--disable-gpu')
+    options.add_argument('--disable-web-security')
+    options.add_argument('--disable-features=VizDisplayCompositor')
     options.add_argument('--window-size=1920,1080')
-    # Remove headless for debugging - can be enabled later
-    # options.add_argument('--headless')
+    options.add_argument('--headless')  # Always run headless in CI
+    options.add_argument('--remote-debugging-port=9222')
+    options.add_argument('--disable-extensions')
+    options.add_argument('--disable-plugins')
+    options.add_argument('--disable-images')
+    options.add_argument('--single-process')
+    options.add_argument('--disable-background-timer-throttling')
+    options.add_argument('--disable-backgrounding-occluded-windows')
+    options.add_argument('--disable-renderer-backgrounding')
     
-    driver = webdriver.Chrome(options=options)
-    driver.set_page_load_timeout(240)
-    return driver
+    # Set a unique user data directory to avoid conflicts
+    import os
+    import tempfile
+    user_data_dir = tempfile.mkdtemp()
+    options.add_argument(f'--user-data-dir={user_data_dir}')
+    
+    # Check if running in GitHub Actions or similar CI environment
+    if os.environ.get('GITHUB_ACTIONS') or os.environ.get('CI'):
+        print("Running in CI environment, configuring for headless Chrome...")
+        options.add_argument('--disable-software-rasterizer')
+        options.add_argument('--disable-background-networking')
+        
+        # Set Chrome binary path for GitHub Actions
+        chrome_bin = os.environ.get('CHROME_BIN', '/usr/bin/google-chrome-stable')
+        if os.path.exists(chrome_bin):
+            options.binary_location = chrome_bin
+            print(f"Using Chrome binary at: {chrome_bin}")
+        else:
+            print(f"Chrome binary not found at: {chrome_bin}")
+    
+    try:
+        # Initialize Chrome service
+        from selenium.webdriver.chrome.service import Service
+        service = Service()
+        
+        driver = webdriver.Chrome(service=service, options=options)
+        driver.set_page_load_timeout(240)
+        print("Chrome driver initialized successfully")
+        return driver
+    except Exception as e:
+        print(f"Error initializing Chrome driver: {str(e)}")
+        raise
 
 
 def load_page(driver):
@@ -205,16 +243,28 @@ def main():
     """Main function to orchestrate the scraping process"""
     print("Starting Nepal Stock floor sheet scraper...")
     
-    # Initialize driver
-    driver = setup_driver()
+    # Check environment
+    import os
+    if os.environ.get('GITHUB_ACTIONS'):
+        print("Running in GitHub Actions environment")
     
+    driver = None
     try:
+        # Initialize driver
+        print("Initializing Chrome driver...")
+        driver = setup_driver()
+        print("Chrome driver initialized successfully")
+        
         # Load the main page
+        print("Loading Nepal Stock floor sheet page...")
         if not load_page(driver):
             print("Failed to load the main page. Exiting.")
             return
         
+        print("Page loaded successfully")
+        
         # Set items per page to maximum for efficiency
+        print("Setting items per page...")
         set_items_per_page(driver, 10)  # You can change this to 25, 50, 100 if available
         
         # Scrape all data
@@ -225,6 +275,8 @@ def main():
             print("No data was scraped. Please check the website structure.")
             return
         
+        print(f"Raw data extracted. Shape: {raw_data.shape}")
+        
         # Clean the data
         print("Cleaning data...")
         cleaned_data = clean_data(raw_data)
@@ -232,6 +284,8 @@ def main():
         if cleaned_data.empty:
             print("No data remaining after cleaning.")
             return
+        
+        print(f"Data cleaned successfully. Shape: {cleaned_data.shape}")
         
         # Save to CSV
         today = datetime.today().strftime('%Y-%m-%d')
@@ -251,11 +305,19 @@ def main():
         
     except Exception as e:
         print(f"An error occurred during scraping: {str(e)}")
+        import traceback
+        traceback.print_exc()
     
     finally:
         # Always close the driver
-        driver.quit()
-        print("Browser closed.")
+        if driver:
+            try:
+                driver.quit()
+                print("Browser closed successfully.")
+            except Exception as e:
+                print(f"Error closing browser: {str(e)}")
+        else:
+            print("No browser to close.")
 
 
 if __name__ == "__main__":
