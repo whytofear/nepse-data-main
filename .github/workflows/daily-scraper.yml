@@ -6,6 +6,10 @@ on:
     - cron: "30 10 * * *"
   workflow_dispatch: # Allow manual triggering
 
+permissions:
+  contents: write
+  actions: read
+
 jobs:
   scrape-floorsheet:
     runs-on: ubuntu-latest
@@ -26,26 +30,66 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: 🌐 Setup Chrome and ChromeDriver
-        run: |
-          # Install Chrome
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
+      - name: 🌐 Setup Chrome Browser
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
 
-          # Install ChromeDriver
-          CHROME_VERSION=$(google-chrome --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-          DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION%%.*}")
-          wget -O /tmp/chromedriver.zip "https://chromedriver.storage.googleapis.com/${DRIVER_VERSION}/chromedriver_linux64.zip"
-          sudo unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
-          sudo chmod +x /usr/local/bin/chromedriver
+      - name: 🌐 Setup ChromeDriver
+        uses: nanasess/setup-chromedriver@v2
+
+      - name: 🖥️ Setup Virtual Display
+        run: |
+          # Install and start Xvfb for headless browser support
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+          # Start Xvfb on display :99
+          Xvfb :99 -screen 0 1920x1080x24 > /dev/null 2>&1 &
+          # Wait for Xvfb to start
+          sleep 3
+
+      - name: 🧪 Test Chrome Setup
+        run: |
+          echo "Testing Chrome and ChromeDriver setup..."
+          echo "Chrome version:"
+          google-chrome --version
+          echo "ChromeDriver version:"
+          chromedriver --version
+          echo "ChromeDriver location:"
+          which chromedriver
+          
+          # Test basic Chrome functionality
+          python -c "
+          from selenium import webdriver
+          from selenium.webdriver.chrome.options import Options
+          
+          options = Options()
+          options.add_argument('--headless=new')
+          options.add_argument('--no-sandbox')
+          options.add_argument('--disable-dev-shm-usage')
+          options.add_argument('--disable-gpu')
+          options.add_argument('--remote-debugging-port=9222')
+          
+          try:
+              driver = webdriver.Chrome(options=options)
+              driver.get('https://www.google.com')
+              print('✅ Chrome setup successful!')
+              print(f'Page title: {driver.title}')
+              driver.quit()
+          except Exception as e:
+              print(f'❌ Chrome setup failed: {e}')
+              exit(1)
+          "
+        env:
+          DISPLAY: :99
 
       - name: 📊 Run Floor Sheet Scraper
         run: |
+          echo "Starting NEPSE Floor Sheet Scraper..."
           python scrape_floorsheet.py
         env:
           DISPLAY: :99
+          CHROME_BIN: /usr/bin/google-chrome
 
       - name: 📁 Check for New Data
         id: check-data
