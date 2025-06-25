@@ -26,6 +26,7 @@ Find and click on your "nepse-data-main" repository
 
 ![Configure Service](https://i.imgur.com/YZpXdCH.png)
 Fill in these exact settings:
+
 - Name: nepse-data-api (or any name)
 - Environment: Python
 - Region: Choose any
@@ -51,6 +52,7 @@ Click on the link (ends with .onrender.com) to access your API
 ## Step 9: (Optional) Add GitHub Token for Better Performance
 
 ![Add Environment Variables](https://i.imgur.com/JLukBfV.png)
+
 1. Click "Environment" in the left menu
 2. Click "Add Environment Variable"
 3. Add GITHUB_TOKEN, your GitHub username, and repo name

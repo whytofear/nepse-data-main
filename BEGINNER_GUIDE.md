@@ -22,10 +22,7 @@ curl https://nepse-data-api.onrender.com/api/stock/ALBSL
 curl https://nepse-data-api.onrender.com/api/stats
 ```
 
-Replace "nepse-data-api" with whatever name you chose for your service.ow to deploy API to Render (Free)](#deploy-to-render)
-4. [How to use the API](#how-to-use-api)
-5. [Understanding the analysis](#understanding-analysis)
-6. [Troubleshooting](#troubleshooting)
+Replace "nepse-data-api" with whatever name you chose for your service.ow to deploy API to Render (Free)](#deploy-to-render) 4. [How to use the API](#how-to-use-api) 5. [Understanding the analysis](#understanding-analysis) 6. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -112,21 +109,25 @@ This project automatically collects daily trading data from Nepal Stock Exchange
 ### Step 2: Deploy to Render (Free) - Super Easy Instructions
 
 1. **Create Render account**:
+
    - Go to: https://dashboard.render.com/register
    - Click "Sign Up"
    - Choose "Continue with GitHub" (easiest option)
    - Authorize Render to access your GitHub account
 
 2. **Connect your GitHub repository**:
+
    - After signing in, you'll see the Render dashboard
    - Click the big purple "New +" button in the top right
    - Select "Web Service" from the dropdown
 
 3. **Find your repository**:
+
    - You'll see a list of your GitHub repositories
    - Find and click on "nepse-data-main"
 
 4. **Set up your service** (just copy these exact settings):
+
    - **Name**: `nepse-data-api` (or choose any name)
    - **Environment**: Select "Python"
    - **Region**: Choose any (closest to you is best)
@@ -136,11 +137,13 @@ This project automatically collects daily trading data from Nepal Stock Exchange
    - Leave all other settings as default
 
 5. **Create your web service**:
+
    - Scroll down and click the purple "Create Web Service" button
    - Render will start building your application (this takes 5-10 minutes)
    - You'll see logs showing the progress
 
 6. **Your API is ready!**
+
    - When you see "Your service is live 🎉", it's ready
    - Click the link at the top (ends with `.onrender.com`) to see your API
 
@@ -300,12 +303,14 @@ jupyter notebook
 1. **Check the logs**:
 
    For Render deployment:
+
    - Go to your Render dashboard
    - Click on your service ("nepse-data-api")
    - Click "Logs" in the left menu
    - Select "Live" to see real-time logs
 
    For local testing:
+
    ```bash
    python api_server.py
    ```
