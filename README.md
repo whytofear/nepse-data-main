@@ -227,3 +227,24 @@ curl https://your-nepse-api.herokuapp.com/api/stock/ALBSL
 # Get market summary
 curl https://your-nepse-api.herokuapp.com/api/stats
 ```
+
+## Free Deployment Options
+
+You can deploy the NEPSE Floor Sheet API for free using Render:
+
+### Render Deployment (Recommended)
+
+Render offers a generous free tier and is easy to set up:
+
+1. Follow the step-by-step guide in [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)
+2. Your API will be available at `https://your-app-name.onrender.com`
+3. Free tier includes 750 hours of runtime per month and automatic HTTPS
+
+#### Render Benefits:
+
+- Easy GitHub integration with automatic deployments
+- Free SSL certificates
+- Custom domains (may require paid plan)
+- Simple environment variable configuration
+
+For complete deployment instructions, see [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md).

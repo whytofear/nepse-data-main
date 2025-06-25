@@ -3,8 +3,26 @@
 ## 📋 Table of Contents
 
 1. [What is this project?](#what-is-this-project)
-2. [How to see the data analysis](#how-to-see-analysis)
-3. [How to deploy API to Heroku](#deploy-to-heroku)
+2. [How to see the data analysis](#how-to-s### API Endpoints (for developers)
+
+```bash
+# List all available files
+curl https://nepse-data-api.onrender.com/api/files
+
+# Get latest data
+curl https://nepse-data-api.onrender.com/api/latest
+
+# Get specific file data
+curl https://nepse-data-api.onrender.com/api/data/nepal_stock_floorsheet_2025-06-25.csv
+
+# Get data for specific stock
+curl https://nepse-data-api.onrender.com/api/stock/ALBSL
+
+# Get statistics
+curl https://nepse-data-api.onrender.com/api/stats
+```
+
+Replace "nepse-data-api" with whatever name you chose for your service.ow to deploy API to Render (Free)](#deploy-to-render)
 4. [How to use the API](#how-to-use-api)
 5. [Understanding the analysis](#understanding-analysis)
 6. [Troubleshooting](#troubleshooting)
@@ -75,7 +93,7 @@ This project automatically collects daily trading data from Nepal Stock Exchange
 
 ---
 
-## 🚀 Deploy to Heroku (Step-by-step for beginners)
+## 🚀 Deploy to Render (Step-by-step for beginners)
 
 ### Step 1: Prepare your GitHub repository
 
@@ -88,63 +106,79 @@ This project automatically collects daily trading data from Nepal Stock Exchange
 
 3. **Update the API configuration**:
    - Open `api_server.py`
-   - Change line 12: `GITHUB_REPO_OWNER = "YOUR_GITHUB_USERNAME"`
-   - Replace `YOUR_GITHUB_USERNAME` with your actual GitHub username
+   - The code now automatically reads from environment variables
+   - You'll configure these in Render later
 
-### Step 2: Deploy to Heroku
+### Step 2: Deploy to Render (Free) - Super Easy Instructions
 
-1. **Create Heroku account**: https://signup.heroku.com/
+1. **Create Render account**:
+   - Go to: https://dashboard.render.com/register
+   - Click "Sign Up"
+   - Choose "Continue with GitHub" (easiest option)
+   - Authorize Render to access your GitHub account
 
-2. **Install Heroku CLI**:
+2. **Connect your GitHub repository**:
+   - After signing in, you'll see the Render dashboard
+   - Click the big purple "New +" button in the top right
+   - Select "Web Service" from the dropdown
 
-   - Download from: https://devcenter.heroku.com/articles/heroku-cli
-   - Install and restart your terminal
+3. **Find your repository**:
+   - You'll see a list of your GitHub repositories
+   - Find and click on "nepse-data-main"
 
-3. **Login to Heroku**:
+4. **Set up your service** (just copy these exact settings):
+   - **Name**: `nepse-data-api` (or choose any name)
+   - **Environment**: Select "Python"
+   - **Region**: Choose any (closest to you is best)
+   - **Branch**: `main` (or your default branch)
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn api_server:app`
+   - Leave all other settings as default
 
-   ```bash
-   heroku login
-   ```
+5. **Create your web service**:
+   - Scroll down and click the purple "Create Web Service" button
+   - Render will start building your application (this takes 5-10 minutes)
+   - You'll see logs showing the progress
 
-4. **Create Heroku app**:
+6. **Your API is ready!**
+   - When you see "Your service is live 🎉", it's ready
+   - Click the link at the top (ends with `.onrender.com`) to see your API
 
-   ```bash
-   heroku create your-nepse-api
-   ```
+7. **(Optional) Add GitHub token for better performance**:
+   - On your web service page, click "Environment" in the left menu
+   - Click "Add Environment Variable"
+   - Add these one by one:
+     - Key: `GITHUB_TOKEN`, Value: (your GitHub token)
+     - Key: `GITHUB_REPO_OWNER`, Value: (your GitHub username)
+     - Key: `GITHUB_REPO_NAME`, Value: `nepse-data-main`
+   - Click "Save Changes"
+   - Render will automatically redeploy your application
 
-   Replace `your-nepse-api` with any unique name you want.
+### How to get a GitHub token (if you want better performance):
 
-5. **Deploy your code**:
-
-   ```bash
-   # In your project directory
-   git init
-   git add .
-   git commit -m "Initial commit"
-   heroku git:remote -a your-nepse-api
-   git push heroku main
-   ```
-
-6. **Set environment variables**:
-
-   ```bash
-   heroku config:set GITHUB_TOKEN=your_github_token
-   ```
-
-   To get GitHub token:
-
-   - Go to GitHub → Settings → Developer settings → Personal access tokens
-   - Generate new token with "repo" permissions
-   - Copy the token and use it above
-
-7. **Open your API**:
-   ```bash
-   heroku open
-   ```
+1. Go to GitHub.com and log in
+2. Click your profile picture in the top right
+3. Choose "Settings"
+4. Scroll down and click "Developer settings" (bottom left)
+5. Click "Personal access tokens" → "Tokens (classic)"
+6. Click "Generate new token" → "Generate new token (classic)"
+7. Name it "NEPSE API Token"
+8. Check the box next to "repo"
+9. Scroll down and click "Generate token"
+10. Copy the token (it looks like a long random string)
+11. Paste it as the value for GITHUB_TOKEN in step 7 above
 
 ### Step 3: Test your API
 
-Your API will be available at: `https://your-nepse-api.herokuapp.com`
+Your API will be available at: `https://nepse-data-api.onrender.com`
+(Replace "nepse-data-api" with whatever name you chose)
+
+### 📸 Visual Step-by-Step Guide
+
+For a complete visual guide with screenshots for each step, see:
+[RENDER_VISUAL_GUIDE.md](RENDER_VISUAL_GUIDE.md)
+
+This includes pictures of exactly what to click and where to find everything!
 
 ---
 
@@ -152,7 +186,7 @@ Your API will be available at: `https://your-nepse-api.herokuapp.com`
 
 ### Web Interface (Easiest)
 
-1. **Open your API URL** in browser: `https://your-nepse-api.herokuapp.com`
+1. **Open your API URL** in browser: `https://your-nepse-api.onrender.com`
 2. **Click the buttons** to try different features:
    - "List All Files" - See available data files
    - "Get Latest Data" - See most recent trading data
@@ -162,19 +196,19 @@ Your API will be available at: `https://your-nepse-api.herokuapp.com`
 
 ```bash
 # List all available files
-curl https://your-nepse-api.herokuapp.com/api/files
+curl https://your-nepse-api.onrender.com/api/files
 
 # Get latest data
-curl https://your-nepse-api.herokuapp.com/api/latest
+curl https://your-nepse-api.onrender.com/api/latest
 
 # Get specific file data
-curl https://your-nepse-api.herokuapp.com/api/data/nepal_stock_floorsheet_2025-06-25.csv
+curl https://your-nepse-api.onrender.com/api/data/nepal_stock_floorsheet_2025-06-25.csv
 
 # Get data for specific stock
-curl https://your-nepse-api.herokuapp.com/api/stock/ALBSL
+curl https://your-nepse-api.onrender.com/api/stock/ALBSL
 
 # Get statistics
-curl https://your-nepse-api.herokuapp.com/api/stats
+curl https://nepse-data-api.onrender.com/api/stats
 ```
 
 ---
@@ -242,11 +276,12 @@ pip install jupyter
 jupyter notebook
 ```
 
-**4. Heroku deployment failed**
+**4. Render deployment failed**
 
-- Check your GitHub username in `api_server.py`
+- Check your GitHub repository is accessible (should be public)
 - Make sure all files are committed to git
-- Check Heroku logs: `heroku logs --tail`
+- Check Render logs in the dashboard
+- Try setting GITHUB_TOKEN environment variable in Render dashboard
 
 **5. API returns "No files found"**
 
@@ -264,11 +299,14 @@ jupyter notebook
 
 1. **Check the logs**:
 
-   ```bash
-   # For Heroku
-   heroku logs --tail
+   For Render deployment:
+   - Go to your Render dashboard
+   - Click on your service ("nepse-data-api")
+   - Click "Logs" in the left menu
+   - Select "Live" to see real-time logs
 
-   # For local testing
+   For local testing:
+   ```bash
    python api_server.py
    ```
 
@@ -295,7 +333,7 @@ After following this guide, you'll have:
 
 - ✅ Working data scraper
 - ✅ Interactive analysis notebook
-- ✅ REST API deployed on Heroku
+- ✅ REST API deployed on Render (free)
 - ✅ Web interface for easy access
 - ✅ Understanding of market analysis
 

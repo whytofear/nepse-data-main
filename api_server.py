@@ -1,6 +1,7 @@
 """
 NEPSE Floor Sheet REST API
 A simple Flask API to serve CSV data from the /data folder using GitHub API
+Optimized for deployment on Render
 """
 
 from flask import Flask, jsonify, request, render_template_string
@@ -10,13 +11,28 @@ import base64
 import os
 from datetime import datetime, timedelta
 import json
+import sys
+import logging
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+
+# Create Flask app
 app = Flask(__name__)
 
+# Check for Render environment
+IS_RENDER = os.environ.get('RENDER') == 'true'
+if IS_RENDER:
+    logging.info("Running on Render environment")
+
 # Configuration
-GITHUB_REPO_OWNER = "whytofear"  # Replace with your GitHub username
-GITHUB_REPO_NAME = "nepse-data-main"        # Replace with your repo name
-GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN')  # Set this in Heroku config vars
+GITHUB_REPO_OWNER = os.environ.get('GITHUB_REPO_OWNER', "whytofear")  # Replace with your GitHub username
+GITHUB_REPO_NAME = os.environ.get('GITHUB_REPO_NAME', "nepse-data-main")  # Replace with your repo name
+GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN')  # Set this in Render config vars
 
 class NEPSEDataAPI:
     def __init__(self):
@@ -33,7 +49,7 @@ class NEPSEDataAPI:
                 return csv_files
             return []
         except Exception as e:
-            print(f"Error fetching CSV files: {str(e)}")
+            logging.error(f"Error fetching CSV files: {str(e)}")
             return []
     
     def get_csv_content(self, filename):
@@ -47,7 +63,7 @@ class NEPSEDataAPI:
                 return content
             return None
         except Exception as e:
-            print(f"Error fetching CSV content: {str(e)}")
+            logging.error(f"Error fetching CSV content: {str(e)}")
             return None
 
 # Initialize API
@@ -327,7 +343,8 @@ def list_files():
             'count': len(files)
         })
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        logging.error(f"Error in list_files: {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal Server Error'}), 500
 
 @app.route('/api/data/<filename>')
 def get_data(filename):
@@ -361,7 +378,8 @@ def get_data(filename):
             'data': df.to_dict('records')
         })
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        logging.error(f"Error in get_data('{filename}'): {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal Server Error'}), 500
 
 @app.route('/api/latest')
 def get_latest():
@@ -392,7 +410,8 @@ def get_latest():
             'data': df.to_dict('records')
         })
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        logging.error(f"Error in get_latest: {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal Server Error'}), 500
 
 @app.route('/api/stats')
 def get_stats():
@@ -434,7 +453,8 @@ def get_stats():
             'sample_stocks': list(stocks)[:10]  # First 10 stocks
         })
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        logging.error(f"Error in get_stats: {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal Server Error'}), 500
 
 @app.route('/api/stock/<symbol>')
 def get_stock_data(symbol):
@@ -469,13 +489,32 @@ def get_stock_data(symbol):
             'data': all_stock_data
         })
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        logging.error(f"Error in get_stock_data('{symbol}'): {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal Server Error'}), 500
 
 @app.route('/health')
 def health():
     """Health check endpoint"""
-    return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()})
+    return jsonify({
+        'status': 'healthy', 
+        'timestamp': datetime.now().isoformat(),
+        'environment': 'Render' if IS_RENDER else 'Development'
+    })
+
+# Add Render-specific route for wake-up
+@app.route('/')
+def home():
+    """Show web interface"""
+    files = nepse_api.get_csv_files()
+    return render_template_string(
+        HTML_TEMPLATE, 
+        files=len(files), 
+        api_url=request.host_url, 
+        latest=files[0]['name'].replace('nepal_stock_floorsheet_', '').replace('.csv', '') if files else "N/A"
+    )
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    debug_mode = not IS_RENDER and os.environ.get('FLASK_ENV') != 'production'
+    logging.info(f"Starting server on port {port}, debug={debug_mode}")
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)
