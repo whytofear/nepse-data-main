@@ -16,10 +16,7 @@ def test_website_accessibility():
     """Test if NEPSE website is accessible"""
     try:
         print("Testing NEPSE website accessibility...")
-        # Disable SSL warnings and verification
-        import urllib3
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        response = requests.get("https://www.nepalstock.com/floor-sheet", timeout=10, verify=False)
+        response = requests.get("https://www.nepalstock.com/floor-sheet", timeout=10)
         print(f"HTTP Status Code: {response.status_code}")
         print(f"Response headers: {dict(response.headers)}")
         
@@ -51,16 +48,6 @@ def setup_test_driver():
     options.add_argument('--disable-backgrounding-occluded-windows')
     options.add_argument('--disable-renderer-backgrounding')
     options.add_argument('--window-size=1920,1080')
-    
-    # Add SSL certificate handling
-    options.add_argument('--ignore-certificate-errors')
-    options.add_argument('--ignore-certificate-errors-spki-list')
-    options.add_argument('--ignore-ssl-errors')
-    options.add_argument('--allow-running-insecure-content')
-    options.add_argument('--ignore-urlfetcher-cert-requests')
-    
-    # Set user agent
-    options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
     
     # Add user agent
     options.add_argument('--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36')
