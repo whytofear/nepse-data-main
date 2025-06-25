@@ -3,9 +3,11 @@
 ## Issues Fixed
 
 ### 1. Chrome Driver Initialization Error
+
 **Problem**: Selenium couldn't maintain a Chrome session in the CI environment.
 
 **Solutions Applied**:
+
 - Updated Chrome options to use `--headless=new` for Chrome 112+
 - Added comprehensive Chrome arguments for CI environment
 - Added better error handling and debugging
@@ -14,17 +16,44 @@
 - Used official `browser-actions/setup-chrome` action
 
 ### 2. Git Push Permission Denied
+
 **Problem**: Workflow couldn't push changes due to authentication issues.
 
 **Solutions Applied**:
+
 - Added `permissions: contents: write` to workflow
 - Separated commit and push steps
 - Used `ad-m/github-push-action` for authenticated pushing
 - Updated to latest GitHub Actions versions
 
+## Latest Updates (ChromeDriver 404 Fix)
+
+### 3. Chrome Driver 404 Error
+**Problem**: Manual Chrome/ChromeDriver installation was failing due to version mismatches and 404 errors.
+
+**Solution Applied**:
+- Replaced manual Chrome installation with official `browser-actions/setup-chrome@v1`
+- Added `nanasess/setup-chromedriver@v2` for automatic ChromeDriver setup
+- These actions handle version compatibility automatically
+- Removed fragile version detection and URL construction logic
+
+### Updated Workflow Steps:
+```yaml
+- name: Setup Chrome Browser
+  uses: browser-actions/setup-chrome@v1
+  with:
+    chrome-version: stable
+
+- name: Setup ChromeDriver
+  uses: nanasess/setup-chromedriver@v2
+```
+
+This ensures Chrome and ChromeDriver versions are always compatible and eliminates 404 download errors.
+
 ## Files Modified
 
 ### 1. `.github/workflows/auto_scrape.yaml`
+
 - Added `permissions: contents: write`
 - Updated to `actions/checkout@v4`
 - Used `browser-actions/setup-chrome@latest`
@@ -34,6 +63,7 @@
 - Used `ad-m/github-push-action@master` for pushing
 
 ### 2. `scrape_floorsheet.py`
+
 - Updated to `--headless=new` for Chrome 112+
 - Added comprehensive Chrome options for CI
 - Improved Chrome binary detection
@@ -42,6 +72,7 @@
 - Enhanced environment detection
 
 ### 3. `test_chrome_setup.py` (New)
+
 - Created test script to verify Chrome setup
 - Can be used to test locally before deployment
 
@@ -56,11 +87,13 @@
 ## Testing
 
 To test the changes locally:
+
 ```bash
 python test_chrome_setup.py
 ```
 
 The workflow should now successfully:
+
 1. Set up Chrome in headless mode
 2. Run the scraper without session errors
 3. Commit and push changes with proper authentication

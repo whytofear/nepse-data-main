@@ -60,7 +60,10 @@ logs/
 chromedriver
 chromedriver.exe
 
-# Data files (optional - uncomment if you don't want to commit data files)
+# # Data directories (case-sensitive)
+Data/
+data/*.csv
+*.csv files (optional - uncomment if you don't want to commit data files)
 # data/*.csv
 
 # Heroku

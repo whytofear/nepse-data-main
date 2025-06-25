@@ -29,9 +29,12 @@ jobs:
           python-version: "3.10"
 
       - name: Setup Chrome Browser
-        uses: browser-actions/setup-chrome@latest
+        uses: browser-actions/setup-chrome@v1
         with:
           chrome-version: stable
+
+      - name: Setup ChromeDriver
+        uses: nanasess/setup-chromedriver@v2
 
       - name: Install Dependencies
         run: |
@@ -42,7 +45,7 @@ jobs:
           # Install Python dependencies
           pip install -r requirements.txt
 
-      - name: Execute Scraping Script
+      - name: Test Chrome Setup
         run: |
           # Start virtual display and verify it's running
           Xvfb :99 -screen 0 1920x1080x24 > /tmp/xvfb.log 2>&1 &
@@ -58,11 +61,26 @@ jobs:
             exit 1
           fi
 
-          # Verify Chrome is available
-          which google-chrome || which chrome || which chromium-browser
-          google-chrome --version || chrome --version || chromium-browser --version
+          # Verify Chrome and ChromeDriver are available
+          echo "Chrome version:"
+          google-chrome --version
+          echo "ChromeDriver version:"
+          chromedriver --version
+          echo "ChromeDriver location:"
+          which chromedriver
 
-          # Run the scraper with debugging
+          # Test Chrome setup
+          python test_chrome.py
+        env:
+          DISPLAY: :99
+          CHROME_BIN: /usr/bin/google-chrome
+
+      - name: Execute Scraping Script
+        run: |
+          # Use the same display as the test
+          export DISPLAY=:99
+          
+          # Run the scraper
           python scrape_floorsheet.py
         env:
           DISPLAY: :99
