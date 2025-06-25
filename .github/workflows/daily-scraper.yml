@@ -83,10 +83,41 @@ jobs:
         env:
           DISPLAY: :99
 
+      - name: 🔍 Test NEPSE Website Access
+        run: |
+          echo "Testing NEPSE website accessibility..."
+          python test_nepse_access.py
+        env:
+          DISPLAY: :99
+          CHROME_BIN: /usr/bin/google-chrome
+
       - name: 📊 Run Floor Sheet Scraper
         run: |
           echo "Starting NEPSE Floor Sheet Scraper..."
-          python scrape_floorsheet.py
+          echo "Environment variables:"
+          echo "DISPLAY: $DISPLAY"
+          echo "CHROME_BIN: $CHROME_BIN"
+          echo "PWD: $(pwd)"
+          echo "Current time: $(date)"
+          
+          # Run the scraper with verbose output
+          python -u scrape_floorsheet.py
+          
+          echo "Scraper finished. Checking results..."
+          echo "Data directory contents:"
+          ls -la data/ || echo "Data directory not found"
+          
+          # Check if any CSV files were created today
+          TODAY=$(date +'%Y-%m-%d')
+          if ls data/*${TODAY}*.csv 1> /dev/null 2>&1; then
+            echo "✅ CSV file created for today"
+            echo "File details:"
+            ls -la data/*${TODAY}*.csv
+            echo "First few lines of the file:"
+            head -n 5 data/*${TODAY}*.csv
+          else
+            echo "❌ No CSV file created for today"
+          fi
         env:
           DISPLAY: :99
           CHROME_BIN: /usr/bin/google-chrome
