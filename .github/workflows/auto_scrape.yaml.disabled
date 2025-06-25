@@ -1,23 +1,19 @@
-name: Auto Scrape
+# DISABLED - Using daily-scraper.yml instead
+# name: Auto Scrape
 
 # on:
 #   push:
 #     branches:
-#       - master
+#       - main
+#   schedule:
+#     - cron: "15 10 * * *" # Every Day at 4PM NST (10:15am UTC)
 
-on:
-  push:
-    branches:
-      - main
-  schedule:
-    - cron: "15 10 * * *" # Every Day at 4PM NST (10:15am UTC)
+# permissions:
+#   contents: write
 
-permissions:
-  contents: write
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
