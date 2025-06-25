@@ -20,7 +20,7 @@ def setup_driver():
     options.add_argument('--disable-web-security')
     options.add_argument('--disable-features=VizDisplayCompositor')
     options.add_argument('--window-size=1920,1080')
-    options.add_argument('--headless')  # Always run headless in CI
+    options.add_argument('--headless=new')  # Use new headless mode for Chrome 112+
     options.add_argument('--remote-debugging-port=9222')
     options.add_argument('--disable-extensions')
     options.add_argument('--disable-plugins')
@@ -29,6 +29,13 @@ def setup_driver():
     options.add_argument('--disable-background-timer-throttling')
     options.add_argument('--disable-backgrounding-occluded-windows')
     options.add_argument('--disable-renderer-backgrounding')
+    options.add_argument('--disable-blink-features=AutomationControlled')
+    options.add_argument('--disable-software-rasterizer')
+    options.add_argument('--disable-background-networking')
+    options.add_argument('--disable-default-apps')
+    options.add_argument('--disable-sync')
+    options.add_argument('--no-first-run')
+    options.add_argument('--no-default-browser-check')
     
     # Set a unique user data directory to avoid conflicts
     import os
@@ -39,28 +46,46 @@ def setup_driver():
     # Check if running in GitHub Actions or similar CI environment
     if os.environ.get('GITHUB_ACTIONS') or os.environ.get('CI'):
         print("Running in CI environment, configuring for headless Chrome...")
-        options.add_argument('--disable-software-rasterizer')
-        options.add_argument('--disable-background-networking')
         
         # Set Chrome binary path for GitHub Actions
         chrome_bin = os.environ.get('CHROME_BIN', '/usr/bin/google-chrome-stable')
         if os.path.exists(chrome_bin):
             options.binary_location = chrome_bin
             print(f"Using Chrome binary at: {chrome_bin}")
+            
+            # Verify DISPLAY is set
+            display = os.environ.get('DISPLAY')
+            print(f"DISPLAY environment variable: {display}")
         else:
             print(f"Chrome binary not found at: {chrome_bin}")
+            # Try alternative paths
+            alternative_paths = ['/usr/bin/google-chrome', '/usr/bin/chromium-browser']
+            for path in alternative_paths:
+                if os.path.exists(path):
+                    options.binary_location = path
+                    print(f"Using alternative Chrome binary at: {path}")
+                    break
     
     try:
         # Initialize Chrome service
         from selenium.webdriver.chrome.service import Service
         service = Service()
         
+        print("Attempting to start Chrome driver...")
         driver = webdriver.Chrome(service=service, options=options)
         driver.set_page_load_timeout(240)
         print("Chrome driver initialized successfully")
+        
+        # Test basic functionality
+        driver.get("data:text/html,<html><body><h1>Test</h1></body></html>")
+        print("Chrome driver test page loaded successfully")
+        
         return driver
     except Exception as e:
         print(f"Error initializing Chrome driver: {str(e)}")
+        print("Trying to get more details about the error...")
+        import traceback
+        traceback.print_exc()
         raise
 
 
