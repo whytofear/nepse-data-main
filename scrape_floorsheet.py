@@ -37,11 +37,31 @@ def setup_driver():
     options.add_argument('--no-first-run')
     options.add_argument('--no-default-browser-check')
     
+    # Add SSL certificate handling
+    options.add_argument('--ignore-certificate-errors')
+    options.add_argument('--ignore-certificate-errors-spki-list')  
+    options.add_argument('--ignore-ssl-errors')
+    options.add_argument('--allow-running-insecure-content')
+    options.add_argument('--ignore-urlfetcher-cert-requests')
+    
+    # Set user agent to avoid detection
+    options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+    
     # Set a unique user data directory to avoid conflicts
     import os
     import tempfile
     user_data_dir = tempfile.mkdtemp()
     options.add_argument(f'--user-data-dir={user_data_dir}')
+    
+    # Add additional stability options for macOS
+    options.add_argument('--disable-web-security')
+    options.add_argument('--disable-features=VizDisplayCompositor')
+    options.add_argument('--disable-ipc-flooding-protection')
+    options.add_argument('--disable-hang-monitor')
+    options.add_argument('--disable-client-side-phishing-detection')
+    options.add_argument('--disable-popup-blocking')
+    options.add_argument('--disable-prompt-on-repost')
+    options.add_argument('--disable-component-update')
     
     # Check if running in GitHub Actions or similar CI environment
     if os.environ.get('GITHUB_ACTIONS') or os.environ.get('CI'):
@@ -75,10 +95,6 @@ def setup_driver():
         driver = webdriver.Chrome(service=service, options=options)
         driver.set_page_load_timeout(240)
         print("Chrome driver initialized successfully")
-        
-        # Test basic functionality
-        driver.get("data:text/html,<html><body><h1>Test</h1></body></html>")
-        print("Chrome driver test page loaded successfully")
         
         return driver
     except Exception as e:

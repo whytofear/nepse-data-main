@@ -1,0 +1,103 @@
+# DISABLED - Using daily-scraper.yml instead
+# name: Auto Scrape
+
+# on:
+#   push:
+#     branches:
+#       - main
+#   schedule:
+#     - cron: "15 10 * * *" # Every Day at 4PM NST (10:15am UTC)
+
+# permissions:
+#   contents: write
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+
+steps:
+  - name: Checkout
+    uses: actions/checkout@v4
+
+  - name: Setup Python Environment
+    uses: actions/setup-python@v4
+    with:
+      python-version: "3.10"
+
+  - name: Setup Chrome Browser
+    uses: browser-actions/setup-chrome@v1
+    with:
+      chrome-version: stable
+
+  - name: Setup ChromeDriver
+    uses: nanasess/setup-chromedriver@v2
+
+  - name: Install Dependencies
+    run: |
+      # Install xvfb for virtual display
+      sudo apt-get update
+      sudo apt-get install -y xvfb
+
+      # Install Python dependencies
+      pip install -r requirements.txt
+
+  - name: Test Chrome Setup
+    run: |
+      # Start virtual display and verify it's running
+      Xvfb :99 -screen 0 1920x1080x24 > /tmp/xvfb.log 2>&1 &
+      export DISPLAY=:99
+      sleep 5
+
+      # Verify Xvfb is running
+      if pgrep -x "Xvfb" > /dev/null; then
+        echo "Xvfb is running successfully"
+      else
+        echo "Failed to start Xvfb"
+        cat /tmp/xvfb.log
+        exit 1
+      fi
+
+      # Verify Chrome and ChromeDriver are available
+      echo "Chrome version:"
+      google-chrome --version
+      echo "ChromeDriver version:"
+      chromedriver --version
+      echo "ChromeDriver location:"
+      which chromedriver
+
+      # Test Chrome setup
+      python test_chrome.py
+    env:
+      DISPLAY: :99
+      CHROME_BIN: /usr/bin/google-chrome
+
+  - name: Execute Scraping Script
+    run: |
+      # Use the same display as the test
+      export DISPLAY=:99
+
+      # Run the scraper
+      python scrape_floorsheet.py
+    env:
+      DISPLAY: :99
+      CHROME_BIN: /usr/bin/google-chrome
+
+  - name: Commit Files
+    if: success()
+    run: |
+      git config --local user.email "action@github.com"
+      git config --local user.name "GitHub Action"
+      git add -A
+      if git diff --staged --quiet; then
+        echo "No changes to commit"
+        exit 0
+      else
+        git commit -m "Data Scraped Successfully on $(date -u)"
+      fi
+
+  - name: Push changes
+    if: success()
+    uses: ad-m/github-push-action@master
+    with:
+      github_token: ${{ secrets.GITHUB_TOKEN }}
+      branch: main

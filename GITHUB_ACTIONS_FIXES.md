@@ -29,15 +29,18 @@
 ## Latest Updates (ChromeDriver 404 Fix)
 
 ### 3. Chrome Driver 404 Error
+
 **Problem**: Manual Chrome/ChromeDriver installation was failing due to version mismatches and 404 errors.
 
 **Solution Applied**:
+
 - Replaced manual Chrome installation with official `browser-actions/setup-chrome@v1`
 - Added `nanasess/setup-chromedriver@v2` for automatic ChromeDriver setup
 - These actions handle version compatibility automatically
 - Removed fragile version detection and URL construction logic
 
 ### Updated Workflow Steps:
+
 ```yaml
 - name: Setup Chrome Browser
   uses: browser-actions/setup-chrome@v1

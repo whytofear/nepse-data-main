@@ -57,19 +57,19 @@ jobs:
           chromedriver --version
           echo "ChromeDriver location:"
           which chromedriver
-          
+
           # Test basic Chrome functionality
           python -c "
           from selenium import webdriver
           from selenium.webdriver.chrome.options import Options
-          
+
           options = Options()
           options.add_argument('--headless=new')
           options.add_argument('--no-sandbox')
           options.add_argument('--disable-dev-shm-usage')
           options.add_argument('--disable-gpu')
           options.add_argument('--remote-debugging-port=9222')
-          
+
           try:
               driver = webdriver.Chrome(options=options)
               driver.get('https://www.google.com')
@@ -99,14 +99,14 @@ jobs:
           echo "CHROME_BIN: $CHROME_BIN"
           echo "PWD: $(pwd)"
           echo "Current time: $(date)"
-          
+
           # Run the scraper with verbose output
           python -u scrape_floorsheet.py
-          
+
           echo "Scraper finished. Checking results..."
           echo "Data directory contents:"
           ls -la data/ || echo "Data directory not found"
-          
+
           # Check if any CSV files were created today
           TODAY=$(date +'%Y-%m-%d')
           if ls data/*${TODAY}*.csv 1> /dev/null 2>&1; then
